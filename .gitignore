@@ -1,0 +1,32 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---- Virtual env ----
+.venv/
+venv/
+
+# ---- Environment files ----
+.env
+.env.*
+
+# ---- Database files ----
+*.db
+*.sqlite
+*.sqlite3
+
+# ---- Logs ----
+*.log
+
+# ---- VS Code ----
+.vscode/
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
