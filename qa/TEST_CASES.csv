@@ -1,0 +1,40 @@
+ID,Title,Preconditions,Steps,Expected Result,Type,Priority
+TC-001,Create employee (valid),API running,POST /employees with full_name+role+max_hours_per_week,201 + employee returned with id,Smoke,P1
+TC-002,List employees,At least 1 employee exists,GET /employees,200 + list contains created employees,Smoke,P1
+TC-003,Create employee with max_hours_per_week=0,API running,POST /employees with max_hours_per_week=0,422 validation error,Regression,P2
+TC-004,Create employee with missing full_name,API running,POST /employees without full_name,422 validation error,Regression,P2
+
+TC-005,Create unavailability (valid),Employee exists,POST /unavailability with employee_id+start_dt+end_dt,201 + unavailability returned with id,Smoke,P1
+TC-006,List unavailability (all),At least 1 unavailability exists,GET /unavailability,200 + list returned,Regression,P2
+TC-007,List unavailability by employee_id,Employee has unavailability,GET /unavailability?employee_id={id},200 + only that employee records,Regression,P2
+TC-008,Create unavailability with end before start,Employee exists,POST /unavailability with end_dt < start_dt,422 validation error,Smoke,P1
+TC-009,Create unavailability for non-existing employee,No employee with id=9999,POST /unavailability with employee_id=9999,404 employee not found,Smoke,P1
+
+TC-010,Create requirement (valid),API running,POST /requirements with week_start+role+start_dt+end_dt+required_count,201 + requirement returned with id,Smoke,P1
+TC-011,List requirements by week_start,At least 1 requirement exists,GET /requirements?week_start=YYYY-MM-DD,200 + sorted list returned,Regression,P2
+TC-012,Create requirement with required_count=0,API running,POST /requirements required_count=0,422 validation error,Smoke,P1
+TC-013,Create requirement with end before start,API running,POST /requirements with end_dt < start_dt,422 validation error,Smoke,P1
+
+TC-014,Generate schedule when no requirements exist,No requirements for selected week,POST /schedule/generate?week_start=YYYY-MM-DD,200 + empty assignments list,Regression,P3
+TC-015,Generate schedule (basic assignment),2 employees + 1 requirement exist,POST /schedule/generate?week_start=...,200 + assignment status=assigned,Smoke,P1
+TC-016,Get schedule after generation,Schedule generated for week,GET /schedule?week_start=...,200 + assignments persisted,Smoke,P1
+
+TC-017,Unavailability blocks assignment,Employee A unavailable overlaps requirement,Generate schedule for week,Assignment selects another employee or unfilled if none available,Smoke,P1
+TC-018,Unavailability non-overlap does not block,Employee unavailable outside shift time,Generate schedule,Employee can still be assigned,Regression,P2
+TC-019,All employees unavailable leads to unfilled,All candidates overlap unavailable,Generate schedule,Assignment status=unfilled,Smoke,P1
+
+TC-020,Max weekly hours enforced,Employee max_hours_per_week set low + many shifts,Generate schedule,Employee not assigned beyond limit; shifts may become unfilled,Regression,P2
+TC-021,Minimum rest hours enforced,Two shifts too close for same employee,Generate schedule,Employee not assigned to second shift if rest rule violated,Regression,P2
+
+TC-022,Fairness heuristic distributes load,2 employees + multiple shifts same role,Generate schedule,Assignments roughly balanced (no one gets all shifts if both viable),Regression,P3
+TC-023,Required_count > 1 fills multiple slots,At least 2 employees available,Create requirement required_count=2 then generate,Both slots assigned to different employees when possible,Smoke,P1
+TC-024,Required_count > available employees,Only 1 employee available required_count=2,Generate schedule,One assigned + one unfilled,Regression,P2
+
+TC-025,Role filtering prevents wrong role assignment,Employees exist with different roles,Create requirement role=kitchen then generate,Only kitchen employees considered,Regression,P2
+TC-026,Multiple requirements sorted by start_dt,3 requirements out of order inserted,GET /requirements?week_start=...,Returned list sorted by start_dt,Regression,P3
+
+TC-027,Re-generate schedule clears previous,Schedule exists for week,POST /schedule/generate again,Old assignments cleared and new written,Regression,P2
+TC-028,GET /schedule for week with no schedule,No generation done for week,GET /schedule?week_start=...,200 + empty list,Regression,P3
+
+TC-029,API returns proper status codes,API running,Run invalid payloads for each endpoint,422/404 returned appropriately with message,Regression,P2
+TC-030,Data persistence across restart,Data created then server restarted,Restart server then GET employees/requirements,Data still exists in SQLite (unless db deleted),Regression,P3
